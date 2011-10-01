@@ -6,4 +6,13 @@ All logic for computing and evolving automata is implemented in plugins.
 
 A simple implementation of Conway's Game Of Life is implemented in plugins/simplelife
 
+To build:
+    git clone git://github.com/jl2/LifeAutomata.git
+    cd LifeAutomata
+    qmake
+    make
 
+To run:
+    ./bin/qlife
+
+    
