@@ -1,5 +1,5 @@
 /*
-  main.cpp
+  lifeplugin.h
   
   Copyright (c) 2011, Jeremiah LaRocco jeremiah.larocco@gmail.com
 
@@ -16,27 +16,21 @@
   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
-#include <QApplication>
-#include <iostream>
+#ifndef LIFE_PLUGIN_H
+#define LIFE_PLUGIN_H
 
-#include <cstdlib>
-#include <ctime>
+class LifePlugin {
+public:
+    virtual ~LifePlugin() {};
+    virtual QString name()=0;
+    virtual QString description()=0;
 
-#include "lifewindow.h"
+    virtual bool allowViewManipulation()=0;
+    virtual void initView()=0;
+    virtual void evolve()=0;
+    virtual void draw()=0;
+};
 
-int main(int argc, char *argv[]) {
+Q_DECLARE_INTERFACE(LifePlugin, "com.jlarocco.LifePlugin/0.1")
 
-    std::srand(std::time(0));
-    QApplication app(argc, argv);
-    if (!QGLFormat::hasOpenGL()) {
-        std::cerr << "This system has no OpenGL support" << std::endl;
-        return 1;
-    }
-
-    LifeWindow gol;
-    gol.setWindowTitle(QObject::tr("Life"));
-    gol.resize(500,500);
-    gol.show();
-
-    return app.exec();
-}
+#endif

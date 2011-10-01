@@ -1,5 +1,5 @@
 /*
-  qlife.h
+  lifewidget.h
   
   Copyright (c) 2011, Jeremiah LaRocco jeremiah.larocco@gmail.com
 
@@ -23,38 +23,20 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-class QLife : public QGLWidget {
+class LifeWidget : public QGLWidget {
     Q_OBJECT;
 
 public:
-    QLife(QWidget *parent = 0);
+    LifeWidget(QWidget *parent = 0);
 
 protected:
     void initializeGL();
     void resizeGL(int width, int height);
     void paintGL();
+
 private slots:
     void timeout();
 
 private:
     QTimer timer;
-    double x(double u, double v);
-    double y(double u, double v);
-    double z(double u, double v);
-
-    void calcNormal(double u, double v, double norm[3]);
-    void normalize(double vect[3]);
-    void cross(double v1[3], double v2[3], double result[3]);
-  
-    GLuint listName;
-    GLfloat rotAngle;
-
-    GLfloat mat_specular[4];
-    GLfloat mat_shininess[1];
-    GLfloat mat_diffuse[4];
-
-    GLfloat light_position[4];
-    GLfloat light_color[4];
-    GLfloat lmodel_ambient[4];
-    double eps;
 };
