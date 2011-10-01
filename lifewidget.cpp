@@ -24,37 +24,84 @@
 
 #define PI (3.141592654)
 
-LifeWidget::LifeWidget(QWidget *parent) : QGLWidget(parent) {
+LifeWidget::LifeWidget(LifePlugin *plug, QWidget *parent) : QGLWidget(parent), curPlugin(plug), curIter(0) {
     setFormat(QGLFormat(QGL::DoubleBuffer | QGL::DepthBuffer));
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(timeout()));
 
-    timer.start(1000/100);
 }
 
+void LifeWidget::setPlugin(LifePlugin *newPlugin) {
+    // What needs clean up?
+    curPlugin = newPlugin;
+    curPlugin->reset();
+    curPlugin->initView();
+    curPlugin->resizeView(curWidth, curHeight);
+}
+
+// void LifeWidget::configure() {
+    
+// }
+
 void LifeWidget::timeout() {
+    if (curPlugin) {
+        curIter++;
+        curPlugin->evolve();
+        emit iterationDone(curIter);
+    }
     updateGL();
 }
 
 void LifeWidget::initializeGL() {
-
-    qglClearColor(Qt::black);
-    glShadeModel(GL_SMOOTH);
+    if (curPlugin) {
+        curPlugin->initView();
+    } else {
+        qglClearColor(Qt::black);
+        glShadeModel(GL_SMOOTH);
+    }
 }
 
 void LifeWidget::resizeGL(int width, int height) {
-    glViewport(0,0, (GLsizei) width, (GLsizei)height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    //  glFrustum(-1.0, 1.0, -1.0, 1.0, 1.5,20.0);
-    gluPerspective(80, 1.0, 1.0, 140);
-    glMatrixMode(GL_MODELVIEW);
+    curWidth = width;
+    curHeight = height;
+    if (curPlugin) {
+        curPlugin->resizeView(width, height);
+    } else {
+        glViewport(0,0, (GLsizei) width, (GLsizei)height);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluPerspective(80, 1.0, 1.0, 140);
+        glMatrixMode(GL_MODELVIEW);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
 }
 
 void LifeWidget::paintGL() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (curPlugin) {
+        curPlugin->draw();
+    } else {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glFlush();
+    }
+}
+void LifeWidget::stop() {
+    timer.stop();
+}
+void LifeWidget::start() {
+    timer.start(1000/100);
+}
+void LifeWidget::reset() {
+    if (curPlugin) {
+        curIter = 0;
+        curPlugin->reset();
+        emit iterationDone(curIter);
+    }
+    updateGL();
+}
 
-    glFlush();
+void LifeWidget::resetView() {
+    if (curPlugin) {
+        curPlugin->initView();
+    }
 }

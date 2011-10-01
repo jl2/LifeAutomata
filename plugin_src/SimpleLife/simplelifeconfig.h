@@ -1,5 +1,5 @@
 /*
-  lifewidget.h
+  simplelifeconfig.h
   
   Copyright (c) 2011, Jeremiah LaRocco jeremiah.larocco@gmail.com
 
@@ -16,45 +16,40 @@
   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
-#include <QtGui>
-#include <QtOpenGL>
-#include <QGLWidget>
+#ifndef SIMPLE_LIFE_CONFIG_INCLUDE_H
+#define SIMPLE_LIFE_CONFIG_INCLUDE_H
 
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include <QDialog>
 
-#include "lifeplugin.h"
+#include "simplelife.h"
 
-class LifeWidget : public QGLWidget {
+class QPushButton;
+class QLineEdit;
+class QLabel;
+class QSettings;
+
+class SimpleLifeConfig : public QDialog {
     Q_OBJECT;
-
 public:
-    LifeWidget(LifePlugin *curPlugin=0, QWidget *parent = 0);
-
-    void setPlugin(LifePlugin *newPlugin);
+    SimpleLifeConfig(SimpleLife *sl, QSettings *sets=0, QWidget *parent = 0);
 
 public slots:
-    void stop();
-    void start();
-    void reset();
-    void resetView();
-    /* void configure(); */
-
-signals:
-    void iterationDone(int);
-
-protected:
-    void initializeGL();
-    void resizeGL(int width, int height);
-    void paintGL();
-
-private slots:
-    void timeout();
+    void finish();
 
 private:
-    QTimer timer;
-    LifePlugin *curPlugin;
+    QLineEdit *widthEdit;
+    QLineEdit *heightEdit;
+    QLineEdit *probEdit;
 
-    int curWidth, curHeight;
-    int curIter;
+    QLineEdit *redEdit;
+    QLineEdit *greenEdit;
+    QLineEdit *blueEdit;
+
+    QPushButton *okayButton;
+    QPushButton *cancelButton;
+
+    SimpleLife *life;
+    QSettings *settings;
 };
+
+#endif

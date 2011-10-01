@@ -44,14 +44,15 @@ public:
   
 public slots:
     void about();
-    void iterationDone();
+    void configureCurrentPlugin();
+    void updateIteration(int iteration);
 
-private slots:
-    void resetView();
+/* private slots: */
+/*     void resetView(); */
     void pluginChanged();
-    void startEvolving();
-    void stopEvolving();
-
+/*     void startEvolving(); */
+/*     void stopEvolving(); */
+/*     void reset(); */
 private:
     void readSettings();
     void setupActions();
@@ -66,12 +67,13 @@ private:
 
     void loadPlugins();
 
-    void doRedraw();
-
     LifeWidget *life;
   
     QAction *startAction;
     QAction *stopAction;
+    QAction *resetAction;
+    QAction *configureAction;
+
     QAction *resetViewAction;
     QAction *exitAction;
     QAction *aboutAction;
@@ -81,6 +83,8 @@ private:
 
     QMap<QString, LifePlugin *> plugins;
     QString curPlugin;
+
+    QSettings *settings;
 };
 
 #endif

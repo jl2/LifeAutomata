@@ -16,43 +16,47 @@
   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
-
 #include <QtGui>
 #include <stdexcept>
 #include "lifewindow.h"
 
 void LifeWindow::readSettings() {
+  settings = new QSettings(QSettings::IniFormat, QSettings::UserScope,
+                           "Life", "Life");
     
 }
 
 LifeWindow::LifeWindow(QWidget *parent) : QMainWindow(parent) {
     readSettings();
+
+    life = new LifeWidget;
+    setCentralWidget(life);
+    connect(life, SIGNAL(iterationDone(int)), this, SLOT(updateIteration(int)));
+
     loadPlugins();
+
     setupActions();
     setupToolBar();
     setupMenuBar();
     setupStatusBar();
 
     setWindowTitle(tr("Life"));
-
-    life = new LifeWidget;
-    setCentralWidget(life);
-
 }
 
 LifeWindow::~LifeWindow() {
+    settings->sync();
 }
 
 void LifeWindow::setupActions() {
     startAction = new QAction(tr("Start"), this);
     // startAction->setIcon(QIcon(":/images/start.png"));
     startAction->setStatusTip(tr("Start iterating current life pattern"));
-    connect(startAction, SIGNAL(triggered()), this, SLOT(startEvolving()));
+    connect(startAction, SIGNAL(triggered()), life, SLOT(start()));
     
     stopAction = new QAction(tr("Stop"), this);
     // stopAction->setIcon(QIcon(":/images/stop.png"));
     stopAction->setStatusTip(tr("Stop iterating current life pattern"));
-    connect(stopAction, SIGNAL(triggered()), this, SLOT(stopEvolving()));
+    connect(stopAction, SIGNAL(triggered()), life, SLOT(stop()));
 
     // Exit
     exitAction = new QAction(tr("Exit"), this);
@@ -61,11 +65,23 @@ void LifeWindow::setupActions() {
     exitAction->setStatusTip(tr("Exit"));
     connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));//exit()));
 
+    // Reset
+    resetAction = new QAction(tr("Reset"), this);
+    // resetAction->setIcon(QIcon(":/images/view.png"));
+    resetAction->setStatusTip(tr("Restart"));
+    connect(resetAction, SIGNAL(triggered()), life, SLOT(reset()));
+
+    // Configure
+    configureAction = new QAction(tr("Configure"), this);
+    // configureAction->setIcon(QIcon(":/images/view.png"));
+    configureAction->setStatusTip(tr("Restart"));
+    connect(configureAction, SIGNAL(triggered()), this, SLOT(configureCurrentPlugin()));
+
     // Reset view
     resetViewAction = new QAction(tr("Reset View"), this);
     // resetViewAction->setIcon(QIcon(":/images/view.png"));
     resetViewAction->setStatusTip(tr("Reset the view"));
-    connect(resetViewAction, SIGNAL(triggered()), this, SLOT(resetView()));
+    connect(resetViewAction, SIGNAL(triggered()), life, SLOT(resetView()));
 
     // About
     aboutAction = new QAction(tr("About"), this);
@@ -79,6 +95,7 @@ void LifeWindow::setupToolBar() {
     QToolBar *tb = new QToolBar("Main", this);
     tb->addAction(startAction);
     tb->addAction(stopAction);
+    tb->addAction(resetAction);
     addToolBar(tb);
 }
 
@@ -86,24 +103,31 @@ void LifeWindow::setupMenuBar() {
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(startAction);
     fileMenu->addAction(stopAction);
+    fileMenu->addAction(resetAction);
+    fileMenu->addAction(resetViewAction);
     fileMenu->addSeparator();
     fileMenu->addAction(exitAction);
 
     pluginMenu = menuBar()->addMenu(tr("Type"));
     for (QMap<QString, LifePlugin *>::const_iterator iter = plugins.constBegin();
          iter != plugins.constEnd(); ++iter) {
-
         QAction *temp;
         temp = new QAction(iter.value()->name(), this);
         temp->setStatusTip(iter.value()->description());
         connect(temp, SIGNAL(triggered()), this, SLOT(pluginChanged()));
         pluginMenu->addAction(temp);
     }
+    pluginMenu->addSeparator();
+    pluginMenu->addAction(configureAction);
   
     menuBar()->addSeparator();
   
     QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(aboutAction);
+}
+
+void LifeWindow::configureCurrentPlugin() {
+    plugins[curPlugin]->configure(this, settings);
 }
 
 void LifeWindow::setupStatusBar() {
@@ -112,21 +136,25 @@ void LifeWindow::setupStatusBar() {
     curIterLabel = new QLabel;
     curIterLabel->setMaximumWidth(fontMetrics().maxWidth()*24);
     curIterLabel->setMinimumWidth(fontMetrics().maxWidth()*10);
-    curIterLabel->setText("Current Iteration: 0");
+    curIterLabel->setText(tr("Iteration: 0"));
     curIterLabel->setAlignment(Qt::AlignHCenter);
 
     curPluginLabel = new QLabel;
     curPluginLabel->setMaximumWidth(fontMetrics().maxWidth()*24);
     curPluginLabel->setMinimumWidth(fontMetrics().maxWidth()*10);
-    curPluginLabel->setText("Current Plugin: None");
+    curPluginLabel->setText(tr("Current Plugin: %1").arg(curPlugin));
     curPluginLabel->setAlignment(Qt::AlignHCenter);
   
     statusBar()->addWidget(curIterLabel);
     statusBar()->addWidget(curPluginLabel);
 }
 void LifeWindow::about() {
-    QMessageBox::about(this, tr("About"), tr("<h2>LifeWindow</h2><p>Qt version</p><p>"
-                                             "By Jeremiah LaRocco.</p>"));
+    QMessageBox::about(this,
+                       tr("About"),
+                       tr("<h2>Conway's Game Of Life</h2>"
+                          "<p>Conway's Game Of Life using Qt.</p>"
+                          "<p>variations of the game are supported via plugins.</p>"
+                          "<p>By Jeremiah LaRocco.</p>"));
 }
 
 void LifeWindow::loadPlugins() {
@@ -150,12 +178,17 @@ void LifeWindow::loadPlugins() {
     foreach(QString fileName, pluginDir.entryList(QDir::Files)) {
         QPluginLoader loader(pluginDir.absoluteFilePath(fileName));
         if (LifePlugin *interface = qobject_cast<LifePlugin *>(loader.instance())) {
+            interface->readSettings(settings);
             plugins[interface->name()] = interface;
+        } else {
+            ;
+            // qDebug() << fileName << " is not a plugin?!";
         }
     }
 
     if (plugins.begin()!=plugins.end()) {
         curPlugin = plugins.begin().value()->name();
+        life->setPlugin(plugins[curPlugin]);
     }
 }
 
@@ -164,12 +197,13 @@ void LifeWindow::pluginChanged() {
     if (action==0) return;
 
     curPlugin = action->text();
+    life->stop();
+    life->setPlugin(plugins[curPlugin]);
+
+    curIterLabel->setText(tr("Current plugin: %1").arg(curPlugin));
+
 }
 
-void LifeWindow::doRedraw() {
+void LifeWindow::updateIteration(int iter) {
+    curIterLabel->setText(tr("Iteration: %1").arg(iter));
 }
-
-void LifeWindow::resetView() {}
-void LifeWindow::startEvolving() {}
-void LifeWindow::stopEvolving() {}
-void LifeWindow::iterationDone() {}
