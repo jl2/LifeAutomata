@@ -1,3 +1,7 @@
 Makefile
 *.o
 moc_*
+bin/qlife
+*.exe
+*.dll
+*.so
