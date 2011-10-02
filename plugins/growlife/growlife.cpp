@@ -1,5 +1,5 @@
 /*
-  threedimlife.cpp
+  growlife.cpp
   
   Copyright (c) 2011, Jeremiah LaRocco jeremiah.larocco@gmail.com
 
@@ -23,65 +23,66 @@
 
 #include <cstdlib>
 
-#include "threedimlife.h"
+#include "growlife.h"
 
-#include "threedimlifeconfig.h"
+#include "growlifeconfig.h"
 
 size_t randUInt(size_t min, size_t max) {
     return ((std::rand()%(max-min)) + min);
 }
 
-ThreeDimLife::ThreeDimLife() : width(32), height(32), depth(32), prob(0.4), r(0),g(1),b(1) {
+GrowLife::GrowLife() : width(32), height(32), depth(32), prob(0.4), r(0),g(1),b(1) {
     zoomAmount=75;
     rotateX = 45.0;
     rotateY = 45.0;
     rotateZ = 0.0;
+    curLevel = 0;
 }
 
-void ThreeDimLife::readSettings(QSettings *sets) {
-    width = sets->value("three_dim_width", 32).toInt();
-    height = sets->value("three_dim_height", 32).toInt();
-    depth = sets->value("three_dim_depth", 32).toInt();
+void GrowLife::readSettings(QSettings *sets) {
+    width = sets->value("grow_width", 32).toInt();
+    height = sets->value("grow_height", 32).toInt();
+    depth = sets->value("grow_depth", 32).toInt();
 
-    prob = sets->value("three_dim_initial_fill", 0.4).toFloat();
+    prob = sets->value("grow_initial_fill", 0.4).toFloat();
 
-    r = sets->value("three_dim_red", 0.0).toFloat();
-    g = sets->value("three_dim_green", 0.8).toFloat();
-    b = sets->value("three_dim_blue", 0.4).toFloat();
+    r = sets->value("grow_red", 0.0).toFloat();
+    g = sets->value("grow_green", 0.8).toFloat();
+    b = sets->value("grow_blue", 0.4).toFloat();
 
     reset();
 }
 
-void ThreeDimLife::configure(QWidget *parent, QSettings *sets) {
-    ThreeDimLifeConfig *cfgDlg = new ThreeDimLifeConfig(this, sets, parent);
+void GrowLife::configure(QWidget *parent, QSettings *sets) {
+    GrowLifeConfig *cfgDlg = new GrowLifeConfig(this, sets, parent);
     cfgDlg->show();
 }
 
-ThreeDimLife::~ThreeDimLife() {
+GrowLife::~GrowLife() {
     array.clear();
 }
 
-QString ThreeDimLife::name() {
-    return tr("3D Life");
+QString GrowLife::name() {
+    return tr("Grow Life");
 }
 
-QString ThreeDimLife::description() {
+QString GrowLife::description() {
     return tr("Traditional Conway's game of life.");
 }
 
-bool ThreeDimLife::allowViewManipulation() {
+bool GrowLife::allowViewManipulation() {
     return true;
 }
 
-void ThreeDimLife::initLights() {
+void GrowLife::initLights() {
     light_position[0][0]=0.0;
     light_position[0][1]=0.0;
-    light_position[0][2]=30.0;
+    light_position[0][2]=00.0;
     light_position[0][3]=1.0;
   
-    light_position[1][0]=0.0;
-    light_position[1][1]=0.0;
-    light_position[1][2]=-30.0;
+    light_position[1][0]=width;
+    light_position[1][1]=height;
+    light_position[1][2]=depth;
     light_position[1][3]=1.0;
   
     for (size_t i=0;i<NUM_LIGHTS; ++i) {
@@ -99,9 +100,9 @@ void ThreeDimLife::initLights() {
     
     glEnable(GL_LIGHT0);
     
-    //   glEnable(GL_LIGHT1);
+    glEnable(GL_LIGHT1);
 }
-void ThreeDimLife::initMaterials() {
+void GrowLife::initMaterials() {
     // lines
     mat_specular[LINE_MAT][0]=0.0;
     mat_specular[LINE_MAT][1]=0.0;
@@ -132,13 +133,13 @@ void ThreeDimLife::initMaterials() {
     mat_diffuse[BOX_MAT][2]=b;
     mat_diffuse[BOX_MAT][3]=1.0;
   
-    mat_ambient[BOX_MAT][0] = 0.130;
-    mat_ambient[BOX_MAT][1] = 0.130;
-    mat_ambient[BOX_MAT][2] = 0.130;
+    mat_ambient[BOX_MAT][0] = 0.230*r;
+    mat_ambient[BOX_MAT][1] = 0.230*g;
+    mat_ambient[BOX_MAT][2] = 0.230*b;
     mat_ambient[BOX_MAT][3] = 1.0;
 }
 
-void ThreeDimLife::initView() {
+void GrowLife::initView() {
     glClearColor(0,0,0,0);
     glShadeModel(GL_SMOOTH);
     glShadeModel(GL_FLAT);
@@ -153,7 +154,7 @@ void ThreeDimLife::initView() {
     initMaterials();
 }
 
-void ThreeDimLife::resizeView(int width, int height) {
+void GrowLife::resizeView(int width, int height) {
     glViewport(0,0, (GLsizei) width, (GLsizei)height);
   
     glMatrixMode(GL_PROJECTION);
@@ -162,63 +163,41 @@ void ThreeDimLife::resizeView(int width, int height) {
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
-    // glViewport(0,0, (GLsizei) width, (GLsizei)height);
-    // glMatrixMode(GL_PROJECTION);
-    // glLoadIdentity();
-    // gluOrtho2D(0, 100,
-    //            0, 100);
-
-    // glMatrixMode(GL_MODELVIEW);
-
-    // glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void ThreeDimLife::evolve() {
+void GrowLife::evolve() {
     // qDebug() << "Evolving";
+    if (curLevel>=depth) return;
 
     int h = height;
     int w = width;
     int d = depth;
 
-    vector_3d rval;
-
-    rval.resize(height);
-    for (int i=0; i<height; ++i) {
-        rval[i].resize(width);
-        // rval.push_back(std::vector< std::vector<bool> >() );
-        // array[i].resize(width);
-        for (int j=0;j<width; ++j) {
-            // array[i][j].push_back(std::vector<bool>());
-            rval[i][j].resize(depth, false);
-        }
-    }
-
+    int nextLevel = curLevel + 1;
+    
     for (int i=0; i<h; ++i) {
         for (int j=0; j<w; ++j) {
-            for (int k=0; k<d; ++k) {
-                int num = countNeighbors(i,j, k);
-
-                if (array[i][j][k]) {
-                    if ((num < 2) || (num > 3)) {
-                        rval[i][j][k] = false;
-                    } else {
-                        rval[i][j][k] = true;
-                    }
+            int num = countNeighbors(i,j, curLevel);
+            
+            if (array[i][j][curLevel]) {
+                if ((num < 2) || (num > 3)) {
+                    array[i][j][nextLevel] = false;
                 } else {
-                    if (num == 3) {
-                        rval[i][j][k] = true;
-                    } else {
-                        rval[i][j][k] = false;
-                    }
+                    array[i][j][nextLevel] = true;
+                }
+            } else {
+                if (num == 3) {
+                    array[i][j][nextLevel] = true;
+                } else {
+                    array[i][j][nextLevel] = false;
                 }
             }
         }
     }
-    array = rval;
+    curLevel += 1;
 }
 
-void ThreeDimLife::draw() {
+void GrowLife::draw() {
     // Rotate/translate the projection matrix
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -241,9 +220,9 @@ void ThreeDimLife::draw() {
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color[0]);
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_color[0]);
   
-    //   glLightfv(GL_LIGHT1, GL_POSITION, light_position[1]);
-    //   glLightfv(GL_LIGHT1, GL_DIFFUSE, light_color[1]);
-    //   glLightfv(GL_LIGHT1, GL_SPECULAR, light_color[1]);
+    glLightfv(GL_LIGHT1, GL_POSITION, light_position[1]);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, light_color[1]);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, light_color[1]);
   
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient[0]);
     glLoadIdentity();
@@ -272,13 +251,14 @@ void ThreeDimLife::draw() {
     float dy = 100.0/height;
     float dz = 100.0/depth;
 
+    glTranslate(-0.5*width, -0.5*height, -0.5*depth);
     // qDebug() << "Drawing";
     for (int i=0; i < height; ++i) {
         float cy = i*dy;
         for (int j=0; j<width; ++j) {
             float cx = j*dx;
             
-            for (int k=0;k<depth; ++k) {
+            for (int k=0;k<curLevel; ++k) {
                 float cz = k*dz;
 
                 if (array[i][j][k]) {
@@ -334,8 +314,9 @@ void ThreeDimLife::draw() {
     glFlush();
 }
 
-void ThreeDimLife::reset() {
+void GrowLife::reset() {
     array.clear();
+    curLevel = 0;
     array.resize(height);
     for (int i=0; i<height; ++i) {
         array[i].resize(width);
@@ -364,16 +345,15 @@ void ThreeDimLife::reset() {
     //         array[i][j].resize(width);
     //     }
     // }
-    int num = prob*width*height*depth;
+    int num = prob*width*height;
     for (int i=0;i<num; ++i) {
         size_t ri = randUInt(0, height);
         size_t rj = randUInt(0, width);
-        size_t rk = randUInt(0, depth);
-        array[ri][rj][rk] = true;
+        array[ri][rj][0] = true;
     }
     initMaterials();
 }
-int ThreeDimLife::countNeighbors(int i, int j, int k) {
+int GrowLife::countNeighbors(int i, int j, int k) {
     int w = width;
     int h = height;
 
@@ -395,38 +375,38 @@ int ThreeDimLife::countNeighbors(int i, int j, int k) {
     return num;
 }
 
-void ThreeDimLife::setRGB(double red, double green, double blue) {
+void GrowLife::setRGB(double red, double green, double blue) {
     r = red;
     g = green;
     b = blue;
 }
 
-void ThreeDimLife::getRGB(double &red, double &green, double &blue) {
+void GrowLife::getRGB(double &red, double &green, double &blue) {
     red = r;
     green = g;
     blue = b;
 }
 
 
-void ThreeDimLife::setProb(double probability) {
+void GrowLife::setProb(double probability) {
     prob = probability;
 }
 
-void ThreeDimLife::getProb(double &probability) {
+void GrowLife::getProb(double &probability) {
     probability = prob;
 }
 
-void ThreeDimLife::setDim(int w, int h, int d) {
+void GrowLife::setDim(int w, int h, int d) {
     width = w;
     height = h;
     depth = d;
 }
-void ThreeDimLife::getDim(int &w, int &h, int &d) {
+void GrowLife::getDim(int &w, int &h, int &d) {
     w = width;
     h = height;
     d = depth;
 }
-void ThreeDimLife::zoom(double amt) {
+void GrowLife::zoom(double amt) {
     zoomAmount += amt;
     if (zoomAmount < 10) zoomAmount = 10.0;
 }
@@ -436,7 +416,7 @@ void wrap(double &val, double min, double max) {
     if (val > max) val = min;
 }
 
-void ThreeDimLife::rotate(double x, double y, double z) {
+void GrowLife::rotate(double x, double y, double z) {
     rotateX += x;
     rotateY += y;
     rotateZ += z;
@@ -446,4 +426,4 @@ void ThreeDimLife::rotate(double x, double y, double z) {
 }
 
 
-Q_EXPORT_PLUGIN2(threedimlife, ThreeDimLife)
+Q_EXPORT_PLUGIN2(growlife, GrowLife)

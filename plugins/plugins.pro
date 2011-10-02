@@ -1,6 +1,6 @@
 
 TEMPLATE = subdirs
 
-SUBDIRS += simplelife threedimlife
+SUBDIRS += simplelife threedimlife growlife
 
 

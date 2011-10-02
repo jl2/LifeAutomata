@@ -184,7 +184,7 @@ void LifeWindow::loadPlugins() {
             plugins[interface->name()] = interface;
         } else {
             ;
-            // qDebug() << fileName << " is not a plugin?!";
+            qDebug() << fileName << " is not a plugin?!";
         }
     }
 
