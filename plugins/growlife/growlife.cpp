@@ -251,7 +251,7 @@ void GrowLife::draw() {
     float dy = 100.0/height;
     float dz = 100.0/depth;
 
-    glTranslate(-0.5*width, -0.5*height, -0.5*depth);
+    glTranslatef(-0.5*width, -0.5*height, -0.5*depth);
     // qDebug() << "Drawing";
     for (int i=0; i < height; ++i) {
         float cy = i*dy;
