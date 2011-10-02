@@ -71,6 +71,9 @@ bool SimpleLife::allowViewManipulation() {
 void SimpleLife::initView() {
     glClearColor(0,0,0,0);
     glShadeModel(GL_SMOOTH);
+    glDisable(GL_LIGHTING);
+    
+    glDisable(GL_LIGHT0);
 }
 
 void SimpleLife::resizeView(int width, int height) {
