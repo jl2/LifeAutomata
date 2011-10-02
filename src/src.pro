@@ -14,3 +14,5 @@ HEADERS += lifeplugin.h lifewindow.h lifewidget.h
 
 SOURCES += main.cpp lifewindow.cpp lifewidget.cpp
 
+RESOURCES += qlife.qrc
+

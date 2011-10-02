@@ -49,43 +49,43 @@ LifeWindow::~LifeWindow() {
 
 void LifeWindow::setupActions() {
     startAction = new QAction(tr("Start"), this);
-    // startAction->setIcon(QIcon(":/images/start.png"));
+    startAction->setIcon(QIcon(":/images/start.png"));
     startAction->setStatusTip(tr("Start iterating current life pattern"));
     connect(startAction, SIGNAL(triggered()), life, SLOT(start()));
     
     stopAction = new QAction(tr("Stop"), this);
-    // stopAction->setIcon(QIcon(":/images/stop.png"));
+    stopAction->setIcon(QIcon(":/images/stop.png"));
     stopAction->setStatusTip(tr("Stop iterating current life pattern"));
     connect(stopAction, SIGNAL(triggered()), life, SLOT(stop()));
 
     // Exit
     exitAction = new QAction(tr("Exit"), this);
-    // exitAction->setIcon(QIcon(":/images/exit.png"));
+    exitAction->setIcon(QIcon(":/images/exit.png"));
     exitAction->setShortcut(tr("Ctrl+Q"));
     exitAction->setStatusTip(tr("Exit"));
     connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));//exit()));
 
     // Reset
     resetAction = new QAction(tr("Reset"), this);
-    // resetAction->setIcon(QIcon(":/images/view.png"));
+    resetAction->setIcon(QIcon(":/images/reset.png"));
     resetAction->setStatusTip(tr("Restart"));
     connect(resetAction, SIGNAL(triggered()), life, SLOT(reset()));
 
     // Configure
     configureAction = new QAction(tr("Configure"), this);
-    // configureAction->setIcon(QIcon(":/images/view.png"));
+    configureAction->setIcon(QIcon(":/images/configure.png"));
     configureAction->setStatusTip(tr("Restart"));
     connect(configureAction, SIGNAL(triggered()), this, SLOT(configureCurrentPlugin()));
 
     // Reset view
     resetViewAction = new QAction(tr("Reset View"), this);
-    // resetViewAction->setIcon(QIcon(":/images/view.png"));
+    resetViewAction->setIcon(QIcon(":/images/resetview.png"));
     resetViewAction->setStatusTip(tr("Reset the view"));
     connect(resetViewAction, SIGNAL(triggered()), life, SLOT(resetView()));
 
     // About
     aboutAction = new QAction(tr("About"), this);
-    // aboutAction->setIcon(QIcon(":/images/about.png"));
+    aboutAction->setIcon(QIcon(":/images/about.png"));
     aboutAction->setStatusTip(tr("About this Life program"));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
 

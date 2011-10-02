@@ -1,0 +1,11 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file>../images/about.png</file>
+    <file>../images/start.png</file>
+    <file>../images/stop.png</file>
+    <file>../images/reset.png</file>
+    <file>../images/configure.png</file>
+    <file>../images/resetview.png</file>
+    <file>../images/exit.png</file>
+  </qresource>
+</RCC>
