@@ -88,7 +88,7 @@ void SimpleLife::resizeView(int width, int height) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void SimpleLife::evolve() {
+bool SimpleLife::evolve() {
     // qDebug() << "Evolving";
 
     int h = height;
@@ -121,6 +121,7 @@ void SimpleLife::evolve() {
         }
     }
     array = rval;
+    return false;
 }
 
 void SimpleLife::draw() {

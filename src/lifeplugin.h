@@ -31,7 +31,7 @@ public:
     virtual bool allowViewManipulation()=0;
     virtual void initView()=0;
     virtual void resizeView(int width, int height)=0;
-    virtual void evolve()=0;
+    virtual bool evolve()=0;
     virtual void draw()=0;
     virtual void reset()=0;
     virtual void readSettings(QSettings *sets) = 0;

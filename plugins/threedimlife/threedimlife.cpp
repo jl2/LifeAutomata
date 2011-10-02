@@ -174,7 +174,7 @@ void ThreeDimLife::resizeView(int width, int height) {
     // glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void ThreeDimLife::evolve() {
+bool ThreeDimLife::evolve() {
     // qDebug() << "Evolving";
 
     int h = height;
@@ -216,6 +216,7 @@ void ThreeDimLife::evolve() {
         }
     }
     array = rval;
+    return false;
 }
 
 void ThreeDimLife::draw() {

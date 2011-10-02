@@ -52,7 +52,7 @@ public:
     virtual bool allowViewManipulation();
     virtual void initView();
     virtual void resizeView(int width, int height);
-    virtual void evolve();
+    virtual bool evolve();
     virtual void draw();
     virtual void reset();
 

@@ -46,7 +46,10 @@ void LifeWidget::setPlugin(LifePlugin *newPlugin) {
 void LifeWidget::timeout() {
     if (curPlugin) {
         curIter++;
-        curPlugin->evolve();
+        bool done = curPlugin->evolve();
+        if (done) {
+            stop();
+        }
         emit iterationDone(curIter);
     }
     updateGL();

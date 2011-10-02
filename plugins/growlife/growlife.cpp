@@ -165,9 +165,9 @@ void GrowLife::resizeView(int width, int height) {
     glLoadIdentity();
 }
 
-void GrowLife::evolve() {
+bool GrowLife::evolve() {
     // qDebug() << "Evolving";
-    if (curLevel>=depth) return;
+    if (curLevel>=depth) return true;
 
     int h = height;
     int w = width;
@@ -195,6 +195,7 @@ void GrowLife::evolve() {
         }
     }
     curLevel += 1;
+    return false;
 }
 
 void GrowLife::draw() {
