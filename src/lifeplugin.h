@@ -36,6 +36,10 @@ public:
     virtual void reset()=0;
     virtual void readSettings(QSettings *sets) = 0;
     virtual void configure(QWidget *parent,QSettings *sets) = 0;
+
+    virtual void zoom(double) {};
+    virtual void rotate(double, double, double) {};
+    
 };
 
 Q_DECLARE_INTERFACE(LifePlugin, "com.jlarocco.LifePlugin/0.1")

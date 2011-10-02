@@ -48,6 +48,11 @@ protected:
     void resizeGL(int width, int height);
     void paintGL();
 
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent *event);
+        
 private slots:
     void timeout();
 
@@ -57,4 +62,11 @@ private:
 
     int curWidth, curHeight;
     int curIter;
+
+    // Stores last mouse position for rotation
+    QPoint lastPos;
+
+    bool clicked;
+    bool rotating;
+    bool mouseDown;
 };

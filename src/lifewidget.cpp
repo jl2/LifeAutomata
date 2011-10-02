@@ -105,3 +105,77 @@ void LifeWidget::resetView() {
         curPlugin->initView();
     }
 }
+/*!
+  Handles mouse clicks
+*/
+void LifeWidget::mousePressEvent(QMouseEvent *event) {
+    if (!curPlugin) return;
+    
+    // Set the last postion for rotations
+    lastPos = event->pos();
+
+    // Update the display
+    updateGL();
+}
+
+/*!
+  Handles mouse clicks
+*/
+void LifeWidget::mouseReleaseEvent(QMouseEvent *event) {
+    if (!curPlugin) return;
+
+    clicked = true;
+
+    // Set the last postion for rotations
+    lastPos = event->pos();
+
+    if (rotating) {
+        rotating = false;
+        updateGL();
+    }
+}
+
+/*!
+  Handles mouse moves
+*/
+void LifeWidget::mouseMoveEvent(QMouseEvent *event) {
+
+    if (!curPlugin) return;
+    if (!curPlugin->allowViewManipulation()) return;
+
+    int idx = event->x() - lastPos.x();
+    int idy = event->y() - lastPos.y();
+    
+    if (!rotating && ((abs(idx) < 2) && (abs(idy) < 2))) {
+        return;
+    }
+
+    GLfloat dx = GLfloat(idx)/width();
+    GLfloat dy = GLfloat(idy)/height();
+
+    rotating = true;
+
+    // Rotate depending on which mouse button is clicked
+    if (event->buttons() & Qt::LeftButton) {
+        curPlugin->rotate(180*dy, 180*dx, 0);
+    } else if (event->buttons() & Qt::RightButton) {
+        curPlugin->rotate(180*dy, 0, 180*dx);
+    }
+    updateGL();    
+
+    // Save the current position
+    lastPos = event->pos();
+}
+
+/*!
+  Handle zooming
+*/
+void LifeWidget::wheelEvent(QWheelEvent *event) {
+    if (!curPlugin) return;
+    if (!curPlugin->allowViewManipulation()) return;
+    
+    curPlugin->zoom(event->delta()*(-0.125*0.5*0.5));
+  
+    updateGL();
+}
+

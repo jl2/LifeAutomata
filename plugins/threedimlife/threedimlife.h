@@ -59,6 +59,9 @@ public:
     virtual void readSettings(QSettings *sets);
     virtual void configure(QWidget *parent, QSettings *sets);
 
+    virtual void zoom(double amt);
+    virtual void rotate(double x, double y, double z);
+
     void setRGB(double red, double green, double blue);
     void getRGB(double &red, double &green, double &blue);
 
@@ -86,15 +89,14 @@ private:
     GLfloat light_color[NUM_LIGHTS][4];
     GLfloat lmodel_ambient[NUM_LIGHTS][4];
 
-    GLfloat rotationX,rotationY,rotationZ;
-    GLfloat translate;
-
     // Arrays to hold material properties
     GLfloat mat_specular[NUM_MATERIALS][4];
     GLfloat mat_shininess[NUM_MATERIALS][1];
     GLfloat mat_diffuse[NUM_MATERIALS][4];
     GLfloat mat_ambient[NUM_MATERIALS][4];
 
+    double rotateX, rotateY, rotateZ;
+    double zoomAmount;
 };
 
 #endif

@@ -32,10 +32,10 @@ size_t randUInt(size_t min, size_t max) {
 }
 
 ThreeDimLife::ThreeDimLife() : width(32), height(32), depth(32), prob(0.4), r(0),g(1),b(1) {
-    translate=75;
-    rotationX = 45.0;
-    rotationY = 45.0;
-    rotationZ = 0.0;
+    zoomAmount=75;
+    rotateX = 45.0;
+    rotateY = 45.0;
+    rotateZ = 0.0;
 }
 
 void ThreeDimLife::readSettings(QSettings *sets) {
@@ -70,7 +70,7 @@ QString ThreeDimLife::description() {
 }
 
 bool ThreeDimLife::allowViewManipulation() {
-    return false;
+    return true;
 }
 
 void ThreeDimLife::initLights() {
@@ -226,10 +226,10 @@ void ThreeDimLife::draw() {
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     
-    glTranslatef(0.0,0.0,-(translate+5));
-    glRotatef(rotationX, 1.0, 0.0, 0.0);
-    glRotatef(rotationY, 0.0, 1.0, 0.0);
-    glRotatef(rotationZ, 0.0, 0.0, 1.0);
+    glTranslatef(0.0,0.0,-(zoomAmount+5));
+    glRotatef(rotateX, 1.0, 0.0, 0.0);
+    glRotatef(rotateY, 0.0, 1.0, 0.0);
+    glRotatef(rotateZ, 0.0, 0.0, 1.0);
 
     // Switch to modelview mode and draw the scene
     glMatrixMode(GL_MODELVIEW);
@@ -250,14 +250,14 @@ void ThreeDimLife::draw() {
     glLoadIdentity();
 
 
-    static GLfloat cubeCorners[] = {-0.5f, 0.5f, 0.5f,
-                                     0.5f, 0.5f, 0.5f,
-                                    0.5f, -0.5f, 0.5f,
-                                    -0.5f, -0.5f, 0.5f,
-                                    -0.5f, 0.5f, -0.5f,
-                                    0.5f, 0.5f, -0.5f,
-                                    0.5f, -0.5f, -0.5f,
-                                    -0.5f, -0.5f, -0.5f,
+    static GLfloat cubeCorners[] = {0.0f, 1.0f, 1.0f,
+                                     1.0f, 1.0f, 1.0f,
+                                    1.0f, 0.0f, 1.0f,
+                                    0.0f, 0.0f, 1.0f,
+                                    0.0f, 1.0f, 0.0f,
+                                    1.0f, 1.0f, 0.0f,
+                                    1.0f, 0.0f, 0.0f,
+                                    0.0f, 0.0f, 0.0f,
     };
     static GLubyte indexes[] = {0, 1, 2, 3,
                                 4, 5, 1, 0,
@@ -287,9 +287,9 @@ void ThreeDimLife::draw() {
                     // Draw the box
                     glPushMatrix();
                     // glScalef(0.25, 0.25, 0.25);
-                    glTranslatef(cx - 0.5*width,
-                                 cy - 0.5*height,
-                                 cz - 0.5*depth);
+                    glTranslatef(i,
+                                 j,
+                                 k);
                     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse[BOX_MAT]);
                     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient[BOX_MAT]);
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -426,6 +426,24 @@ void ThreeDimLife::getDim(int &w, int &h, int &d) {
     w = width;
     h = height;
     d = depth;
+}
+void ThreeDimLife::zoom(double amt) {
+    zoomAmount += amt;
+    if (zoomAmount < 10) zoomAmount = 10.0;
+}
+
+void wrap(double &val, double min, double max) {
+    if (val < min) val = max;
+    if (val > max) val = min;
+}
+
+void ThreeDimLife::rotate(double x, double y, double z) {
+    rotateX += x;
+    rotateY += y;
+    rotateZ += z;
+    wrap(x,0,360);
+    wrap(y,0,360);
+    wrap(z,0,360);
 }
 
 

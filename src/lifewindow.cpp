@@ -96,6 +96,8 @@ void LifeWindow::setupToolBar() {
     tb->addAction(startAction);
     tb->addAction(stopAction);
     tb->addAction(resetAction);
+    tb->addAction(resetViewAction);
+    
     addToolBar(tb);
 }
 
