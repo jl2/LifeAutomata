@@ -76,12 +76,12 @@ bool ThreeDimLife::allowViewManipulation() {
 void ThreeDimLife::initLights() {
     light_position[0][0]=0.0;
     light_position[0][1]=0.0;
-    light_position[0][2]=30.0;
+    light_position[0][2]=0.0;
     light_position[0][3]=1.0;
   
-    light_position[1][0]=0.0;
-    light_position[1][1]=0.0;
-    light_position[1][2]=-30.0;
+    light_position[1][0]=width;
+    light_position[1][1]=height;
+    light_position[1][2]=depth;
     light_position[1][3]=1.0;
   
     for (size_t i=0;i<NUM_LIGHTS; ++i) {
@@ -96,10 +96,8 @@ void ThreeDimLife::initLights() {
     }
 
     glEnable(GL_LIGHTING);
-    
     glEnable(GL_LIGHT0);
-    
-    //   glEnable(GL_LIGHT1);
+    glEnable(GL_LIGHT1);
 }
 void ThreeDimLife::initMaterials() {
     // lines
@@ -112,7 +110,7 @@ void ThreeDimLife::initMaterials() {
 
     mat_diffuse[LINE_MAT][0]=0.0;
     mat_diffuse[LINE_MAT][1]=0.0;
-    mat_diffuse[LINE_MAT][2]=0.0;
+    mat_diffuse[LINE_MAT][2]=0.2;
     mat_diffuse[LINE_MAT][3]=1.0;
   
     mat_ambient[LINE_MAT][0] = 0.0;
@@ -120,9 +118,9 @@ void ThreeDimLife::initMaterials() {
     mat_ambient[LINE_MAT][2] = 0.0;
     mat_ambient[LINE_MAT][3] = 1.0;
 
-    mat_specular[BOX_MAT][0]=1.0;
-    mat_specular[BOX_MAT][1]=0.125;
-    mat_specular[BOX_MAT][2]=0.125;
+    mat_specular[BOX_MAT][0]=0.3;
+    mat_specular[BOX_MAT][1]=0.3;
+    mat_specular[BOX_MAT][2]=0.3;
     mat_specular[BOX_MAT][3]=1.0;
 
     mat_shininess[BOX_MAT][0]=100.0;
@@ -130,25 +128,29 @@ void ThreeDimLife::initMaterials() {
     mat_diffuse[BOX_MAT][0]=r;
     mat_diffuse[BOX_MAT][1]=g;
     mat_diffuse[BOX_MAT][2]=b;
-    mat_diffuse[BOX_MAT][3]=1.0;
+    mat_diffuse[BOX_MAT][3]=0.9;
   
-    mat_ambient[BOX_MAT][0] = 0.130;
-    mat_ambient[BOX_MAT][1] = 0.130;
-    mat_ambient[BOX_MAT][2] = 0.130;
+    mat_ambient[BOX_MAT][0] = 0.10;
+    mat_ambient[BOX_MAT][1] = 0.10;
+    mat_ambient[BOX_MAT][2] = 0.10;
     mat_ambient[BOX_MAT][3] = 1.0;
 }
 
 void ThreeDimLife::initView() {
     glClearColor(0,0,0,0);
     glShadeModel(GL_SMOOTH);
-    glShadeModel(GL_FLAT);
     
     glPolygonMode(GL_FRONT, GL_FILL);
     
     glEnable(GL_POLYGON_OFFSET_FILL);
     
     glEnable(GL_DEPTH_TEST);
-    
+
+    zoomAmount=75;
+    rotateX = 45.0;
+    rotateY = 45.0;
+    rotateZ = 0.0;
+
     initLights();
     initMaterials();
 }
@@ -162,16 +164,6 @@ void ThreeDimLife::resizeView(int width, int height) {
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
-    // glViewport(0,0, (GLsizei) width, (GLsizei)height);
-    // glMatrixMode(GL_PROJECTION);
-    // glLoadIdentity();
-    // gluOrtho2D(0, 100,
-    //            0, 100);
-
-    // glMatrixMode(GL_MODELVIEW);
-
-    // glClear(GL_COLOR_BUFFER_BIT);
 }
 
 bool ThreeDimLife::evolve() {
@@ -186,10 +178,7 @@ bool ThreeDimLife::evolve() {
     rval.resize(height);
     for (int i=0; i<height; ++i) {
         rval[i].resize(width);
-        // rval.push_back(std::vector< std::vector<bool> >() );
-        // array[i].resize(width);
         for (int j=0;j<width; ++j) {
-            // array[i][j].push_back(std::vector<bool>());
             rval[i][j].resize(depth, false);
         }
     }
@@ -242,22 +231,22 @@ void ThreeDimLife::draw() {
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color[0]);
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_color[0]);
   
-    //   glLightfv(GL_LIGHT1, GL_POSITION, light_position[1]);
-    //   glLightfv(GL_LIGHT1, GL_DIFFUSE, light_color[1]);
-    //   glLightfv(GL_LIGHT1, GL_SPECULAR, light_color[1]);
+    glLightfv(GL_LIGHT1, GL_POSITION, light_position[1]);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, light_color[1]);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, light_color[1]);
   
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient[0]);
     glLoadIdentity();
 
 
-    static GLfloat cubeCorners[] = {0.0f, 1.0f, 1.0f,
-                                     1.0f, 1.0f, 1.0f,
-                                    1.0f, 0.0f, 1.0f,
-                                    0.0f, 0.0f, 1.0f,
-                                    0.0f, 1.0f, 0.0f,
-                                    1.0f, 1.0f, 0.0f,
-                                    1.0f, 0.0f, 0.0f,
-                                    0.0f, 0.0f, 0.0f,
+    static GLfloat cubeCorners[] = {0.02f, 0.98f, 0.98f,
+                                     0.98f, 0.98f, 0.98f,
+                                    0.98f, 0.02f, 0.98f,
+                                    0.02f, 0.02f, 0.98f,
+                                    0.02f, 0.98f, 0.02f,
+                                    0.98f, 0.98f, 0.02f,
+                                    0.98f, 0.02f, 0.02f,
+                                    0.02f, 0.02f, 0.02f,
     };
     static GLubyte indexes[] = {0, 1, 2, 3,
                                 4, 5, 1, 0,
@@ -267,12 +256,23 @@ void ThreeDimLife::draw() {
                                 4, 0, 3, 7,
     };
 
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glEnable(GL_POINT_SMOOTH);
+    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_POLYGON_SMOOTH);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
     // glTranslatef(-0.5*width, -0.5*height, 0);
     float dx = 100.0/width;
     float dy = 100.0/height;
     float dz = 100.0/depth;
+    
+    glEnableClientState(GL_VERTEX_ARRAY);
 
+    glTranslatef(-0.5*width, -0.5*height, -0.5*depth);
     // qDebug() << "Drawing";
     for (int i=0; i < height; ++i) {
         float cy = i*dy;
@@ -292,18 +292,21 @@ void ThreeDimLife::draw() {
                                  k);
                     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse[BOX_MAT]);
                     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient[BOX_MAT]);
+                    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular[BOX_MAT]);
+                    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess[BOX_MAT]);
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-                    glEnableClientState(GL_VERTEX_ARRAY);
 
                     glVertexPointer(3, GL_FLOAT, 0, cubeCorners);
 
                     glDrawElements(GL_QUADS, 24, GL_UNSIGNED_BYTE, indexes);
     
-                    glLineWidth(1.0);
+                    glLineWidth(1.5);
 
                     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse[LINE_MAT]);
                     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient[LINE_MAT]);
+                    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular[LINE_MAT]);
+                    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess[LINE_MAT]);
+                    
 
                     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);// Draw the outline
                     glVertexPointer(3, GL_FLOAT, 0, cubeCorners);
@@ -311,15 +314,6 @@ void ThreeDimLife::draw() {
     
                     glLineWidth(1.0);
                     glPopMatrix();
-                
-                
-                    // glBegin(GL_QUADS);
-                    // glColor3f(r,g,b);
-                    // glVertex2f(cx, cy);
-                    // glVertex2f(cx+dx, cy);
-                    // glVertex2f(cx+dx, cy+dy);
-                    // glVertex2f(cx, cy+dy);
-                    // glEnd();
                 }
             }
         }
@@ -340,31 +334,10 @@ void ThreeDimLife::reset() {
     array.resize(height);
     for (int i=0; i<height; ++i) {
         array[i].resize(width);
-        // rval.push_back(std::vector< std::vector<bool> >() );
-        // array[i].resize(width);
         for (int j=0;j<width; ++j) {
-            // array[i][j].push_back(std::vector<bool>());
             array[i][j].resize(depth, false);
         }
     }
-
-    // for (int i=0; i<height; ++i) {
-    //     array.push_back(std::vector< std::vector<bool> >() );
-    //     // array[i].resize(width);
-    //     for (int j=0;j<width; ++j) {
-    //         array[i][j].push_back(std::vector<bool>());
-    //         array[i][j].resize(width, false);
-    //     }
-    // }
-
-    // for (int i=0; i<height; ++i) {
-    //     array.push_back(std::vector< std::vector<bool> >());
-    //     array[i].resize(width);
-    //     for (int j=0;j<depth; ++j) {
-    //         array[i][j].push_back(std::vector<bool>());
-    //         array[i][j].resize(width);
-    //     }
-    // }
     int num = prob*width*height*depth;
     for (int i=0;i<num; ++i) {
         size_t ri = randUInt(0, height);
@@ -373,6 +346,7 @@ void ThreeDimLife::reset() {
         array[ri][rj][rk] = true;
     }
     initMaterials();
+    initLights();
 }
 int ThreeDimLife::countNeighbors(int i, int j, int k) {
     int w = width;

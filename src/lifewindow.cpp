@@ -161,7 +161,6 @@ void LifeWindow::about() {
 
 void LifeWindow::loadPlugins() {
     QDir pluginDir(QApplication::applicationDirPath());
-    qDebug() << "Directory: " << pluginDir;
 #if defined(Q_OS_WIN)
     if (pluginDir.dirName().toLower() == "debug" ||
         pluginDir.dirName().toLower == "release")

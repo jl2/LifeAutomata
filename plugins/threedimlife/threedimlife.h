@@ -33,7 +33,7 @@
 #include "lifeplugin.h"
 
 static const size_t NUM_MATERIALS=2;
-static const size_t NUM_LIGHTS=1;
+static const size_t NUM_LIGHTS=2;
 
 static const size_t LINE_MAT=0;
 static const size_t BOX_MAT=1;

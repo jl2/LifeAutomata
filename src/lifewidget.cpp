@@ -25,7 +25,8 @@
 #define PI (3.141592654)
 
 LifeWidget::LifeWidget(LifePlugin *plug, QWidget *parent) : QGLWidget(parent), curPlugin(plug), curIter(0) {
-    setFormat(QGLFormat(QGL::DoubleBuffer | QGL::DepthBuffer));
+    setFormat(QGLFormat(QGL::DoubleBuffer | QGL::DepthBuffer // | QGL::SampleBuffers
+                        | QGL::AlphaChannel | QGL::DirectRendering));
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(timeout()));
 
@@ -106,6 +107,7 @@ void LifeWidget::reset() {
 void LifeWidget::resetView() {
     if (curPlugin) {
         curPlugin->initView();
+        updateGL();
     }
 }
 /*!
